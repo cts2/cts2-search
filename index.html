@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>LexEVS CTS2 Search</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="">
+<meta name="author" content="">
+
+<script src="lib/bootstrap/js/jquery-1.9.1.min.js"></script>
+<script src="lib/bootstrap/js/bootstrap.min.js"></script>
+<script src="lib/bootstrap/js/bootstrap-multiselect.js"></script>
+<script src="lib/bootstrap/js/bootstrapSwitch.min.js"></script>
+<script src="lib/bootstrap/js/prettify.js"></script>
+<script src="js/help.js"></script>
+
+<link href="lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<link href="lib/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet">
+<link href="lib/bootstrap/css/bootstrapSwitch.css" rel="stylesheet" >
+<link href="lib/bootstrap/css/prettify.css" rel="stylesheet" >
+
+<style type="text/css">
+body {
+	padding-top: 20px;
+	padding-bottom: 40px;
+}
+
+/* Custom container */
+.container-narrow {
+	margin: 0 auto;
+	max-width: 700px;
+}
+
+.container-narrow>hr {
+	margin: 30px 0;
+}
+
+.search-result {
+	margin-left: 0px !important;
+}
+
+.lead {
+	margin-bottom: 0px;
+}
+
+.loading-div {
+ 	text-align: center;
+}
+
+.loading-img {
+ 	padding: 50px;
+}
+
+.codingSchemesSelect {
+	margin-bottom: 10px;
+}
+
+
+</style>
+
+</head>
+
+<body>
+
+	<div class="container-narrow">
+
+		<div class="masthead">
+			
+	
+			<h3 class="muted">LexEVS CTS2 Search</h3>
+		</div>
+
+		<hr>
+
+		<div class="input-append">
+			<select id="matchAlgorithmSelect" class="multiselect">
+				<option value="luceneQuery">Lucene Query</option>
+				<option value="contains">Contains</option>
+			</select>
+			<input class="span4" id="searchTextInput" type="text">
+			<button id="searchButton" class="btn help" type="button">Search</button>
+			<button id="clearButton" class="btn help" type="button">Clear</button>
+			<button id="optionsButton" class="btn help" data-toggle="modal" data-target="#optionsModal">Options</button>
+		</div>
+	
+		<div class="codingSchemesSelect">
+			<select id="codingSchemesSelect" class="multiselect" multiple="multiple"></select>
+		</div>
+
+		<script>
+		var baeseUrl = "http://localhost:8080/cts2";
+		
+		var codeSystemVersions = {};
+		
+		function search(codeSystemVersions, text, algorithm){	
+			$('#loading-indicator').show();
+			 var url = baeseUrl + '/entities?matchalgorithm='+algorithm+'&matchvalue='+text+'&format=json&callback=?';
+			 
+			 if(codeSystemVersions.length > 0){
+				 url += "&codesystemversion=" + codeSystemVersions.join('&codesystemversion=')
+			 }
+			 
+			 $.ajax(url, {  
+			        dataType: "jsonp",
+			        success: function(data){
+			            $.each(data.entityDirectory.entryList, function(i,item){
+			            	var description = item.knownEntityDescriptionList[0];
+			            	
+			            	var code = item.name.name;
+			            	var codesystem = description.describingCodeSystemVersion.codeSystem.content;
+			            	var designation = description.designation;
+			            	
+			            	var div = '<div class="row well well-small search-result">\
+			    				<div class="span12">\
+			    					<p class="lead">\
+			    						<strong>'+codesystem+' </strong>'+code+'<br>'+designation+'\
+			    					</p>\
+			    				</div>\
+			    			</div>';
+			    			
+			    			$("#searchContent").append(div);
+			    			
+			    			$('#loading-indicator').hide();
+			            });
+			        }
+			    });  
+		 }
+		
+		function initHelp(){
+			 $('.help').each(function(idx,value){
+				 var helpElement = $(value);
+				 var helpElementId = helpElement.attr('id');
+				 var helpObj = help[helpElementId];
+				 $(value).popover(helpObj);
+			 });
+			 
+			 $('#codingSchemesDropdown > .multiselect-container > ul > li:not(:has(.multiselect-all))').each(function(idx,value){
+				 	var $li = $(this);
+				 	var value = $li.find('input').val();
+				 	$li.popover({
+				 		title : value,
+				 		content : codeSystemVersions[value],
+				 		trigger : "hover",
+				 		placement : "left"
+				 	});
+			 });
+			 
+			 $('#matchAlgorithmDropdown > .multiselect-container > ul > li').each(function(idx,value){
+				 	var $li = $(this);
+				 	var value = $li.find('input').val();
+				 	$li.popover(help[value]);
+			 });
+		}
+		
+		function initMultiSelects(){
+			 $('#matchAlgorithmSelect').multiselect({
+				 buttonContainer: '<span id="matchAlgorithmDropdown" class="btn-group"/>',
+				 buttonWidth: '125px'
+			 });
+			 
+			 $('#codingSchemesSelect').multiselect({
+				 buttonClass: 'btn',
+				 buttonWidth: 'auto',
+				 buttonContainer: '<div id="codingSchemesDropdown" class="btn-group"/>',
+				 enableFiltering: true,
+				 includeSelectAllOption: true,
+				 maxHeight: false,
+				 buttonText: function(options) {
+					 if (options.length == 0) {
+						 return 'Select Coding Schemes <b class="caret"></b>';
+					 } else if (options.length > 3) {
+						 return options.length + ' Coding Schemes Selected <b class="caret"></b>';
+					 } else {
+						 var selected = '';
+						 options.each(function() {
+						 	selected += $(this).text() + ', ';
+						 });
+						 return selected.substr(0, selected.length -2) + ' <b class="caret"></b>';
+					 }
+				 }
+			 });
+		 }
+
+		 $(document).ready(function() {
+				
+			$.ajax(baeseUrl + "/codesystemversions?format=json&callback=?", {  
+		        dataType: "jsonp",
+		        success: function(data){
+		            $.each(data.codeSystemVersionCatalogEntryDirectory.entryList, function(i,item){
+		            	var name = item.codeSystemVersionName;
+		            	//var description = item.resourceSynopsis.value;
+		            	var description = item.formalName;
+		            	
+		            	var option = '<option value="'+name+'">'+name+'</option>';
+		            	
+		    			$("#codingSchemesSelect").append(option);
+		    			
+		    			codeSystemVersions[name] = description;
+		            });
+		            
+		            initMultiSelects();
+				 	initHelp();
+		        }
+		     });  
+
+			 $("#clearButton").click(function() {
+				 $("#searchContent").html("");
+			 });
+			 
+			 $("#searchButton").click(function() {
+				 var codeSystemVersions = [];
+				 
+				 var selectAll = $("#codingSchemesSelect > option:selected[value='multiselect-all']");
+
+				 if(selectAll.length == 0){
+					 $("#codingSchemesSelect").
+					 	find("option:selected").each(function(){
+					 		codeSystemVersions.push(this.value);
+					 });
+				 }
+				
+				 var algorithm = $("#matchAlgorithmSelect > option:selected")[0].value;
+				 
+				 $("#searchContent").html("");
+				 search(codeSystemVersions, $("#searchTextInput").val(), algorithm);	 
+			 });
+			 
+			 $("#searchTextInput").keyup(function(event){
+			    if(event.keyCode == 13){
+			        $("#searchButton").click();
+			    }
+			 }); 
+		 
+		 });
+
+		</script>
+
+		<div class='loading-div'>
+			<img class='loading-img' src="img/276.gif" id="loading-indicator" style="display:none" />
+		</div>
+		
+		<div id="searchContent"></div>
+
+		<div class="row-fluid marketing">
+			<div class="span6">
+				<h4>Subheading</h4>
+				<p>Donec id elit non mi porta gravida at eget metus. Maecenas
+					faucibus mollis interdum.</p>
+
+				<h4>Subheading</h4>
+				<p>Morbi leo risus, porta ac consectetur ac, vestibulum at eros.
+					Cras mattis consectetur purus sit amet fermentum.</p>
+
+				<h4>Subheading</h4>
+				<p>Maecenas sed diam eget risus varius blandit sit amet non
+					magna.</p>
+			</div>
+
+			<div class="span6">
+				<h4>Subheading</h4>
+				<p>Donec id elit non mi porta gravida at eget metus. Maecenas
+					faucibus mollis interdum.</p>
+
+				<h4>Subheading</h4>
+				<p>Morbi leo risus, porta ac consectetur ac, vestibulum at eros.
+					Cras mattis consectetur purus sit amet fermentum.</p>
+
+				<h4>Subheading</h4>
+				<p>Maecenas sed diam eget risus varius blandit sit amet non
+					magna.</p>
+			</div>
+		</div>
+
+		<hr>
+
+		<div class="footer">
+			<p>&copy; Company 2013</p>
+		</div>
+
+	</div>
+	<!-- /container -->
+
+	<!-- Modal -->
+	<div id="optionsModal" class="modal hide fade" tabindex="-1" role="dialog"
+		aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal"
+				aria-hidden="true">×</button>
+			<h3 id="myModalLabel">Options</h3>
+		</div>
+		<div class="modal-body">
+		   <div>Help Messages</div>
+		   <div id="helpSwitch" class="switch" >
+				<input type="checkbox" checked />
+			</div>
+			<script>
+			    $('#helpSwitch').on('switch-change', function (e, data) {
+				    if(data.value){
+				    	$('.help').popover('enable');
+				    } else {
+				    	$('.help').popover('disable');
+				    }
+			    });
+			</script>
+		</div>
+		<div class="modal-footer">
+			<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+		</div>
+	</div>
+</body>
+</html>
