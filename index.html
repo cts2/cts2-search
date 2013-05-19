@@ -11,6 +11,7 @@
 <script src="lib/bootstrap/js/bootstrap.min.js"></script>
 <script src="lib/bootstrap/js/bootstrap-multiselect.js"></script>
 <script src="lib/bootstrap/js/bootstrapSwitch.min.js"></script>
+<script src="lib/bootstrap/js/mustache.js"></script>
 <script src="lib/bootstrap/js/prettify.js"></script>
 <script src="js/help.js"></script>
 
@@ -113,7 +114,8 @@ body {
 			            	var div = '<div class="row well well-small search-result">\
 			    				<div class="span12">\
 			    					<p class="lead">\
-			    						<strong>'+codesystem+' </strong>'+code+'<br>'+designation+'\
+			    						<strong>'+codesystem+' </strong>'+code+'\
+			    						<br>'+designation+'\
 			    					</p>\
 			    				</div>\
 			    			</div>';
@@ -231,6 +233,13 @@ body {
 			    }
 			 }); 
 		 
+			 $('#searchContent').on( 'click', function () {
+			 	var template = $('#entityModalTemplate').html().trim();
+			    var html = Mustache.to_html(template, {test:"hi"});
+			    var $modal = $(html);
+			   
+			    $modal.modal('show');
+			 });
 		 });
 
 		</script>
@@ -240,6 +249,7 @@ body {
 		</div>
 		
 		<div id="searchContent"></div>
+				
 
 		<div class="row-fluid marketing">
 			<div class="span6">
@@ -307,5 +317,33 @@ body {
 			<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
 		</div>
 	</div>
+	
+	<script id="entityModalTemplate">
+	<div class="modal hide fade" tabindex="-1" role="dialog"
+		aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal"
+				aria-hidden="true">×</button>
+			<h3 id="myModalLabel">Options</h3>
+		</div>
+		<div class="modal-body">
+		   <div>Help Messages</div>
+		   
+			<script>
+			    $('#helpSwitch').on('switch-change', function (e, data) {
+				    if(data.value){
+				    	$('.help').popover('enable');
+				    } else {
+				    	$('.help').popover('disable');
+				    }
+			    });
+			</script>
+		</div>
+		<div class="modal-footer">
+			<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+		</div>
+	</div>
+	</script>
+	
 </body>
 </html>
