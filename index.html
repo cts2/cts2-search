@@ -56,6 +56,14 @@ body {
 	margin-bottom: 10px;
 }
 
+.search-result {
+	cursor: pointer;
+}
+
+.popover {
+	width: 300px;
+	max-width: 300px;
+}
 
 </style>
 
@@ -66,8 +74,6 @@ body {
 	<div class="container-narrow">
 
 		<div class="masthead">
-			
-	
 			<h3 class="muted">LexEVS CTS2 Search</h3>
 		</div>
 
@@ -79,9 +85,9 @@ body {
 				<option value="contains">Contains</option>
 			</select>
 			<input class="span4" id="searchTextInput" type="text">
-			<button id="searchButton" class="btn help" type="button">Search</button>
-			<button id="clearButton" class="btn help" type="button">Clear</button>
-			<button id="optionsButton" class="btn help" data-toggle="modal" data-target="#optionsModal">Options</button>
+			<button id="searchButton" class="btn" type="button">Search</button>
+			<button id="clearButton" class="btn" type="button">Clear</button>
+			<button id="optionsButton" class="btn" data-toggle="modal" data-target="#optionsModal">Options</button>
 		</div>
 	
 		<div class="codingSchemesSelect">
@@ -104,26 +110,34 @@ body {
 			 $.ajax(url, {  
 			        dataType: "jsonp",
 			        success: function(data){
-			            $.each(data.entityDirectory.entryList, function(i,item){
-			            	var description = item.knownEntityDescriptionList[0];
-			            	
-			            	var code = item.name.name;
-			            	var codesystem = description.describingCodeSystemVersion.codeSystem.content;
-			            	var designation = description.designation;
-			            	
-			            	var div = '<div class="row well well-small search-result">\
-			    				<div class="span12">\
-			    					<p class="lead">\
-			    						<strong>'+codesystem+' </strong>'+code+'\
-			    						<br>'+designation+'\
-			    					</p>\
-			    				</div>\
-			    			</div>';
-			    			
-			    			$("#searchContent").append(div);
-			    			
-			    			$('#loading-indicator').hide();
-			            });
+			        	if(data.entityDirectory.entryList){
+				            $.each(data.entityDirectory.entryList, function(i,item){
+				            	var template = $('#searchResultTemplate').html().trim();
+							    var html = Mustache.to_html(template, item);
+				    			
+				    			$("#searchContent").append(html);
+				            });
+				            
+							 $('.search-result').on( 'click', function () {
+								var href = $(this).data('href');
+								
+							 	var template = $('#entityModalTemplate').html().trim();
+							 	
+								$.ajax(href+"?format=json&callback=?", {  
+							        dataType: "jsonp",
+							        success: function(data){
+									    var html = Mustache.to_html(template, 
+									    		data.entityDescriptionMsg.entityDescription.namedEntity);
+									    var $modal = $(html);
+									   
+									    $modal.modal('show');
+								    }  
+							 	});
+							});
+				        } else {
+				        	$("#searchContent").append('<p class="lead">No Results</p>');
+				        }
+		    			$('#loading-indicator').hide();
 			        }
 			    });  
 		 }
@@ -138,17 +152,19 @@ body {
 			 
 			 $('#codingSchemesDropdown > .multiselect-container > ul > li:not(:has(.multiselect-all))').each(function(idx,value){
 				 	var $li = $(this);
+				 	$li.addClass('help');
 				 	var value = $li.find('input').val();
 				 	$li.popover({
 				 		title : value,
 				 		content : codeSystemVersions[value],
 				 		trigger : "hover",
-				 		placement : "left"
+				 		placement : "right"
 				 	});
 			 });
 			 
 			 $('#matchAlgorithmDropdown > .multiselect-container > ul > li').each(function(idx,value){
 				 	var $li = $(this);
+				 	$li.addClass('help');
 				 	var value = $li.find('input').val();
 				 	$li.popover(help[value]);
 			 });
@@ -190,7 +206,6 @@ body {
 		        success: function(data){
 		            $.each(data.codeSystemVersionCatalogEntryDirectory.entryList, function(i,item){
 		            	var name = item.codeSystemVersionName;
-		            	//var description = item.resourceSynopsis.value;
 		            	var description = item.formalName;
 		            	
 		            	var option = '<option value="'+name+'">'+name+'</option>';
@@ -232,14 +247,6 @@ body {
 			        $("#searchButton").click();
 			    }
 			 }); 
-		 
-			 $('#searchContent').on( 'click', function () {
-			 	var template = $('#entityModalTemplate').html().trim();
-			    var html = Mustache.to_html(template, {test:"hi"});
-			    var $modal = $(html);
-			   
-			    $modal.modal('show');
-			 });
 		 });
 
 		</script>
@@ -249,42 +256,11 @@ body {
 		</div>
 		
 		<div id="searchContent"></div>
-				
-
-		<div class="row-fluid marketing">
-			<div class="span6">
-				<h4>Subheading</h4>
-				<p>Donec id elit non mi porta gravida at eget metus. Maecenas
-					faucibus mollis interdum.</p>
-
-				<h4>Subheading</h4>
-				<p>Morbi leo risus, porta ac consectetur ac, vestibulum at eros.
-					Cras mattis consectetur purus sit amet fermentum.</p>
-
-				<h4>Subheading</h4>
-				<p>Maecenas sed diam eget risus varius blandit sit amet non
-					magna.</p>
-			</div>
-
-			<div class="span6">
-				<h4>Subheading</h4>
-				<p>Donec id elit non mi porta gravida at eget metus. Maecenas
-					faucibus mollis interdum.</p>
-
-				<h4>Subheading</h4>
-				<p>Morbi leo risus, porta ac consectetur ac, vestibulum at eros.
-					Cras mattis consectetur purus sit amet fermentum.</p>
-
-				<h4>Subheading</h4>
-				<p>Maecenas sed diam eget risus varius blandit sit amet non
-					magna.</p>
-			</div>
-		</div>
 
 		<hr>
 
 		<div class="footer">
-			<p>&copy; Company 2013</p>
+<!-- 			<p><a href="http://informatics.mayo.edu/cts2">CTS2</a></p> -->
 		</div>
 
 	</div>
@@ -318,26 +294,47 @@ body {
 		</div>
 	</div>
 	
-	<script id="entityModalTemplate">
-	<div class="modal hide fade" tabindex="-1" role="dialog"
+	<script id="searchResultTemplate" type="text/html">
+		<div class="row well well-small search-result" data-href="{{href}}">
+			<div class="span12">
+				<p class="lead">
+					<strong>{{knownEntityDescriptionList.0.describingCodeSystemVersion.codeSystem.content}}</strong>
+					{{name.name}}<br>
+					{{knownEntityDescriptionList.0.designation}}
+				</p>
+			</div>
+		</div>
+	</script>
+	
+	<script id="entityModalTemplate" type="text/html">
+		<div class="modal hide fade" tabindex="-1" role="dialog"
 		aria-labelledby="myModalLabel" aria-hidden="true">
 		<div class="modal-header">
 			<button type="button" class="close" data-dismiss="modal"
 				aria-hidden="true">×</button>
-			<h3 id="myModalLabel">Options</h3>
+			<h3 id="myModalLabel">{{describingCodeSystemVersion.codeSystem.content}} - {{entityID.name}}</h3>
 		</div>
 		<div class="modal-body">
-		   <div>Help Messages</div>
-		   
-			<script>
-			    $('#helpSwitch').on('switch-change', function (e, data) {
-				    if(data.value){
-				    	$('.help').popover('enable');
-				    } else {
-				    	$('.help').popover('disable');
-				    }
-			    });
-			</script>
+           <dl class="dl-horizontal">
+           	<strong>Name: </strong>{{entityID.name}}<br>
+            <strong>Namespace: </strong>{{entityID.namespace}}<br>
+			{{#designationList}}
+				<div class="well well-small">
+					<strong>Designation</strong><br>
+					<strong>Role: </strong><span class="label label-success">{{designationRole}}</span><br>
+					<strong>Value: </strong>{{value}}</strong>
+				</div>
+			{{/designationList}}
+			{{#propertyList}}
+				<div class="well well-small">
+					<strong>Property</strong><br>
+					<strong>Name: </strong>{{predicate.name}}<br>
+					{{#valueList}}
+					<strong>Value: </strong>{{literal.value}}<br>
+					{{/valueList}}
+				</div>
+			{{/propertyList}}
+			</dl>   
 		</div>
 		<div class="modal-footer">
 			<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>

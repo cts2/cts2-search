@@ -21,15 +21,13 @@ var help = {
 		html : true,
 		content : "<b>LuceneQuery: </b>The Lucene Query Syntax.<br>\
 				  <h5>Examples</h5>\
-				  <code>heart*</code>\
-				  <br><code>he?rt</code>\
-				  <br><code>heart~</code>\
-				  <br><code>heart AND attack</code>\
-				  <br><code>heart^5 AND attack</code>\
-				  <br><code>heart -attack</code>\
-				  <br><code>code:118797008 AND heart</code>\
-				  </li>\
-				  </ul>"
+				  Wildcard (multiple chars): <code>heart*</code>\
+				  <br>Wildcard (single char): <code>he?rt</code>\
+				  <br>Fuzzy Match: <code>heart~</code>\
+				  <br>Boolean: <code>heart AND attack</code>\
+				  <br>Boosting: <code>heart^5 AND attack</code>\
+				  <br>Negation: <code>heart -attack</code>\
+				  <br>Code Field: <code>code:118797008 AND heart</code>"
 		,
 		trigger : "hover",
 		placement : "right"
