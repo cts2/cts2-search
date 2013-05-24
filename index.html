@@ -65,6 +65,10 @@ body {
 	max-width: 300px;
 }
 
+.multiselect-all input[type="checkbox"] {
+    display: none;
+}
+
 </style>
 
 </head>
@@ -183,6 +187,15 @@ body {
 				 enableFiltering: true,
 				 includeSelectAllOption: true,
 				 maxHeight: false,
+				 selectAllText: "Select/Deselect All",
+				 onChange: function(element, checked) {
+					 var selectedOptions = $("#codingSchemesSelect > option:selected").length;
+					 if(selectedOptions == 0){
+					 	$("#searchButton").attr("disabled", "disabled");
+					 } else {
+						$("#searchButton").removeAttr("disabled");
+					 }
+			     },
 				 buttonText: function(options) {
 					 if (options.length == 0) {
 						 return 'Select Coding Schemes <b class="caret"></b>';
@@ -197,9 +210,44 @@ body {
 					 }
 				 }
 			 });
+			 
+			 codingSchemesSelectAll();
 		 }
+		
+		function codingSchemesSelectAll() {
+			$('option', $('#codingSchemesSelect')).each(function(element) {
+				$('#codingSchemesSelect').multiselect('select', $(this).val());
+			});
+		}
+		
+		function codingSchemesDeselectAll() {
+			$('option', $('#codingSchemesSelect')).each(function(element) {
+				$('#codingSchemesSelect').multiselect('deselect', $(this).val());
+			});
+		}
+		
+		function codingSchemesToggle() {
+			if (allCodingSchemesSelected()) {
+				codingSchemesDeselectAll();
+				$("#codingSchemesToggle").text("Select All");
+			} else {
+				codingSchemesSelectAll();
+				$("#codingSchemesToggle").text("Deselect All");
+			}
+		}
 
+		function allCodingSchemesSelected() {
+			var ret = true;
+			$('option', $('#codingSchemesSelect')).each(function(element) {
+				if (!!!$(this).attr('selected')) {
+					ret = false;
+				}
+			});
+			return ret;
+		}
+		
 		 $(document).ready(function() {
+			 
 				
 			$.ajax(baeseUrl + "/codesystemversions?format=json&callback=?", {  
 		        dataType: "jsonp",
@@ -227,14 +275,11 @@ body {
 			 $("#searchButton").click(function() {
 				 var codeSystemVersions = [];
 				 
-				 var selectAll = $("#codingSchemesSelect > option:selected[value='multiselect-all']");
+				 var codingSchemes = $("#codingSchemesSelect > option:selected[value!='multiselect-all']");
 
-				 if(selectAll.length == 0){
-					 $("#codingSchemesSelect").
-					 	find("option:selected").each(function(){
-					 		codeSystemVersions.push(this.value);
-					 });
-				 }
+				 codingSchemes.each(function(){
+				 	codeSystemVersions.push(this.value);
+			     });
 				
 				 var algorithm = $("#matchAlgorithmSelect > option:selected")[0].value;
 				 
