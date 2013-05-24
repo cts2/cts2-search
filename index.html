@@ -100,7 +100,7 @@ body {
 
 		<script>
 		var baeseUrl = "http://localhost:8080/cts2";
-		
+
 		var codeSystemVersions = {};
 		
 		function search(codeSystemVersions, text, algorithm){	
@@ -246,27 +246,44 @@ body {
 			return ret;
 		}
 		
-		 $(document).ready(function() {
-			 
+		function loadCodeSystemVersions(){
+			
+			$('#codingSchemesSelect').find('option').remove();
+
+			var onlyProduction = $('#onlyProductionSwitch').bootstrapSwitch('status');
+			
+			var onlyProductionString = onlyProduction ? "filtercomponent=tag&matchvalue=PRODUCTION&" : "";
 				
-			$.ajax(baeseUrl + "/codesystemversions?format=json&callback=?", {  
+			$.ajax(baeseUrl + "/codesystemversions?"+onlyProductionString+"format=json&callback=?", {  
 		        dataType: "jsonp",
 		        success: function(data){
-		            $.each(data.codeSystemVersionCatalogEntryDirectory.entryList, function(i,item){
-		            	var name = item.codeSystemVersionName;
-		            	var description = item.formalName;
-		            	
-		            	var option = '<option value="'+name+'">'+name+'</option>';
-		            	
-		    			$("#codingSchemesSelect").append(option);
-		    			
-		    			codeSystemVersions[name] = description;
-		            });
-		            
-		            initMultiSelects();
+		        	if(data.codeSystemVersionCatalogEntryDirectory.entryList){
+			            $.each(data.codeSystemVersionCatalogEntryDirectory.entryList, function(i,item){
+			            	var name = item.codeSystemVersionName;
+			            	var description = item.formalName;
+			            	
+			            	var option = '<option value="'+name+'">'+name+'</option>';
+			            	
+			    			$("#codingSchemesSelect").append(option);
+			    			
+			    			codeSystemVersions[name] = description;
+			            });
+		        	} else {
+		        		$("#searchButton").attr("disabled", "disabled");
+		        	}
+		        	initMultiSelects();
 				 	initHelp();
+				 	
+				 	codingSchemesDeselectAll();
+				 	$("#codingSchemesSelect").multiselect('refresh');
+				 	$("#codingSchemesSelect").multiselect('rebuild');
 		        }
 		     });  
+		 }
+		
+		 $(document).ready(function() {
+	         
+			 loadCodeSystemVersions();
 
 			 $("#clearButton").click(function() {
 				 $("#searchContent").html("");
@@ -324,6 +341,10 @@ body {
 		   <div id="helpSwitch" class="switch" >
 				<input type="checkbox" checked />
 			</div>
+			<div>Only Search PRODUCTION Tagged Coding Schemes</div>
+			<div id="onlyProductionSwitch" class="switch" >
+				<input type="checkbox" checked />
+			</div>
 			<script>
 			    $('#helpSwitch').on('switch-change', function (e, data) {
 				    if(data.value){
@@ -331,6 +352,9 @@ body {
 				    } else {
 				    	$('.help').popover('disable');
 				    }
+			    });
+			    $('#onlyProductionSwitch').on('switch-change', function (e, data) {
+			    	loadCodeSystemVersions();
 			    });
 			</script>
 		</div>
