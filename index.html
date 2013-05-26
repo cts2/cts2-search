@@ -125,7 +125,7 @@ body {
 							 $('.search-result').on( 'click', function () {
 								var href = $(this).data('href');
 								
-							 	var template = $('#entityModalTemplate').html().trim();
+							 	var template = $.trim($('#entityModalTemplate').html());
 							 	
 								$.ajax(href+"?format=json&callback=?", {  
 							        dataType: "jsonp",
