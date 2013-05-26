@@ -116,7 +116,7 @@ body {
 			        success: function(data){
 			        	if(data.entityDirectory.entryList){
 				            $.each(data.entityDirectory.entryList, function(i,item){
-				            	var template = $('#searchResultTemplate').html().trim();
+				            	var template = $.trim($('#searchResultTemplate').html());
 							    var html = Mustache.to_html(template, item);
 				    			
 				    			$("#searchContent").append(html);
