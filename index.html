@@ -99,13 +99,22 @@ body {
 		</div>
 
 		<script>
-		var baeseUrl = "http://localhost:8080/cts2";
+		
+	   /*
+	    * ==========================
+	    * CTS2 Search Configuration
+	    * ==========================
+	    * 'baseUrl' : The CTS2 Service to query.
+		* 
+		* Update this with the desired CTS2 Service URL.
+	    */
+		var baseUrl = "http://informatics.mayo.edu/cts2/searchdemo";
 
 		var codeSystemVersions = {};
 		
 		function search(codeSystemVersions, text, algorithm){	
 			$('#loading-indicator').show();
-			 var url = baeseUrl + '/entities?matchalgorithm='+algorithm+'&matchvalue='+text+'&format=json&callback=?';
+			 var url = baseUrl + '/entities?matchalgorithm='+algorithm+'&matchvalue='+text+'&format=json&callback=?';
 			 
 			 if(codeSystemVersions.length > 0){
 				 url += "&codesystemversion=" + codeSystemVersions.join('&codesystemversion=')
@@ -254,7 +263,7 @@ body {
 			
 			var onlyProductionString = onlyProduction ? "filtercomponent=tag&matchvalue=PRODUCTION&" : "";
 				
-			$.ajax(baeseUrl + "/codesystemversions?"+onlyProductionString+"format=json&callback=?", {  
+			$.ajax(baseUrl + "/codesystemversions?"+onlyProductionString+"format=json&callback=?", {  
 		        dataType: "jsonp",
 		        success: function(data){
 		        	if(data.codeSystemVersionCatalogEntryDirectory.entryList){
