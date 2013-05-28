@@ -281,13 +281,14 @@ body {
 		        		$("#searchButton").attr("disabled", "disabled");
 		        	}
 		        	initMultiSelects();
-				 	initHelp();
 				 	
 				 	codingSchemesDeselectAll();
 				 	$("#codingSchemesSelect").multiselect('refresh');
 				 	$("#codingSchemesSelect").multiselect('rebuild');
 				 	
 				 	codingSchemesSelectAll();
+				 	
+				 	initHelp();
 		        }
 		     });  
 		 }
